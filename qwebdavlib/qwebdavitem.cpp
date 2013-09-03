@@ -59,6 +59,7 @@ QWebdavItem::QWebdavItem() :
    ,m_lastModified()
    ,m_lastModifiedStr()
    ,m_size(0)
+   ,m_code(200)
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
    ,m_displayName()
    ,m_createdAt()
@@ -74,7 +75,7 @@ QWebdavItem::QWebdavItem() :
 
 QWebdavItem::QWebdavItem(const QString &path, const QString &name,
                          const QString &ext, bool dirOrFile,
-                         const QDateTime &lastModified, quint64 size) :
+                         const QDateTime &lastModified, quint64 size, int code) :
    m_dirOrFile(dirOrFile)
   ,m_path(path)
   ,m_name(name)
@@ -82,6 +83,7 @@ QWebdavItem::QWebdavItem(const QString &path, const QString &name,
   ,m_lastModified(lastModified)
   ,m_lastModifiedStr(lastModified.toString("yyyy-MM-dd hh:mm")) // ISO format
   ,m_size(size)
+  ,m_code(code)
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
   ,m_displayName()
   ,m_createdAt()
@@ -98,7 +100,7 @@ QWebdavItem::QWebdavItem(const QString &path, const QString &name,
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
 QWebdavItem::QWebdavItem(const QString &path, const QString &name,
             const QString &ext, bool dirOrFile,
-            const QDateTime &lastModified, quint64 size,
+            const QDateTime &lastModified, quint64 size, int code,
             const QString &displayName, const QDateTime &createdAt,
             const QString &contentLanguage, const QString &entityTag,
             const QString &mimeType, bool isExecutable,
@@ -110,15 +112,18 @@ QWebdavItem::QWebdavItem(const QString &path, const QString &name,
    ,m_lastModified(lastModified)
    ,m_lastModifiedStr(lastModified.toString("yyyy-MM-dd hh:mm")) // ISO format
    ,m_size(size)
+   ,m_code(code)
    ,m_displayName(displayName)
    ,m_createdAt(createdAt)
-   ,m_createdAtStr(createdAt.toString("yyyy-MM-dd hh:mm")) // ISO format
+//   ,m_createdAtStr(createdAt.toString("yyyy-MM-dd hh:mm")) // ISO format
    ,m_contentLanguage(contentLanguage)
    ,m_entityTag(entityTag)
    ,m_mimeType(mimeType)
    ,m_isExecutable(isExecutable)
    ,m_source(source)
 {
+    if (createdAt.isValid())
+        m_createdAtStr = createdAt.toString("yyyy-MM-dd hh:mm");
 }
 #endif // QWEBDAVITEM_EXTENDED_PROPERTIES
 
@@ -155,6 +160,11 @@ QString QWebdavItem::lastModifiedStr() const
 quint64 QWebdavItem::size() const
 {
     return m_size;
+}
+
+int QWebdavItem::code() const
+{
+    return m_code;
 }
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES

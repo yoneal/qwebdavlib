@@ -188,6 +188,8 @@ void QWebdavDirParser::replyFinished()
     qDebug() << "QWebdavDirParser::replyFinished()";
 #endif
 
+
+    // ToDo: will this ever happen?
     if (m_reply!=reply) {
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdavDirParser::replyFinished()  wrong reply : m_reply!=reply";
@@ -247,6 +249,7 @@ void QWebdavDirParser::replyDeleteLater(QNetworkReply* reply)
 
     if ((!reply->isFinished()) || reply->bytesToWrite() || reply->bytesAvailable()) {
 #ifdef DEBUG_WEBDAV
+    //ToDo: when will this happen?
     qDebug() << "QWebdavDirParser::replyDeleteLater()      reinvoke replyDeleteLater()";
 #endif
         reply->readAll();
@@ -310,6 +313,7 @@ void QWebdavDirParser::parseMultiResponse(const QByteArray &data)
 
         parseResponse(thisResponse);
 
+        // ToDo: Reference RFC:
         // container without slash at the end is a wrong answer
         // remove this item from the list
         if ((!m_includeRequestedURI) && m_dirList.last().isDir() && !responseName.endsWith("/")) {
@@ -356,6 +360,7 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
     bool dirOrFile = false;
     QDateTime lastModified;
     quint64 size = 0;
+    int code = 404;
 
     if (path.startsWith("http")) { // with scheme and authority
         QUrl pathUrl(path);
@@ -376,6 +381,7 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
     // name
     QStringList pathElements = path_.split('/', QString::SkipEmptyParts);
     name = pathElements.isEmpty() ? "/" : pathElements.back();
+    qDebug() << "QWebdavDirParser::davParsePropstats(): " << name;
 
     for ( int i = 0; i < propstats.count(); i++) {
         QDomElement propstat = propstats.item(i).toElement();
@@ -391,10 +397,12 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
         if (m_abort)
             return;
 
-        int code = codeFromResponse( status.text() );
+        code = codeFromResponse( status.text() );
 
         if (code == 404) // property not available
             continue;
+
+        // ToDo: add code here
 
         QDomElement prop = propstat.namedItem( "prop" ).toElement();
 
@@ -485,7 +493,7 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
     m_dirList.append(QWebdavItem(path_, name,
                                  ext, dirOrFile,
-                                 lastModified, size,
+                                 lastModified, size, code,
                                  displayName, createdAt,
                                  contentLanguage, entityTag,
                                  mimeType, isExecutable,
@@ -493,7 +501,7 @@ void QWebdavDirParser::davParsePropstats(const QString &path, const QDomNodeList
 #else
     m_dirList.append(QWebdavItem(path_, name,
                                  ext, dirOrFile,
-                                 lastModified, size));
+                                 lastModified, size, code));
 #endif
 }
 

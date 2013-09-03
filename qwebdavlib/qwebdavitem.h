@@ -62,12 +62,12 @@ public:
 
     QWebdavItem(const QString &path, const QString &name,
                 const QString &ext, bool dirOrFile,
-                const QDateTime &lastModified, quint64 size);
+                const QDateTime &lastModified, quint64 size, int code);
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
     QWebdavItem(const QString &path, const QString &name,
                 const QString &ext, bool dirOrFile,
-                const QDateTime &lastModified, quint64 size,
+                const QDateTime &lastModified, quint64 size, int code,
                 const QString &displayName, const QDateTime &createdAt,
                 const QString &contentLanguage, const QString &entityTag,
                 const QString &mimeType, bool isExecutable,
@@ -81,6 +81,7 @@ public:
     QDateTime lastModified() const;
     QString lastModifiedStr() const;
     quint64 size() const;
+    int code() const;
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
     QString displayName() const;
@@ -103,6 +104,7 @@ protected:
     QDateTime m_lastModified;
     QString m_lastModifiedStr;
     quint64 m_size;
+    int m_code;
 
 #ifdef QWEBDAVITEM_EXTENDED_PROPERTIES
     QString m_displayName;
