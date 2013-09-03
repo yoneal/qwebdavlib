@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/data">
+        <file alias="rfc4918.pdf">data/rfc4918.pdf</file>
+    </qresource>
+</RCC>

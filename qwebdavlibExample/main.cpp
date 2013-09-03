@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
 
     QExample e;
     e.start();
-    
+    qDebug() << "Done";
+
     return a.exec();
 }
