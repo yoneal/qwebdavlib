@@ -58,6 +58,8 @@
 
 /**
  * @brief Main class used to handle the webdav protocol
+ *
+ * All public methods are REENTRANT only.
  */
 class QWEBDAVSHARED_EXPORT QWebdav : public QNetworkAccessManager
 {
@@ -81,17 +83,17 @@ public:
     QWebdavConnectionType connectionType() const;
     bool isSSL() const;
 
-    void setConnectionSettings( const QWebdavConnectionType connectionType,
+    void setConnectionSettings(const QWebdavConnectionType connectionType,
                             const QString &hostname,
                             const QString &rootPath = "/",
                             const QString &username = "",
                             const QString &password = "",
                             int port = 0,
-                            const QString &sslCertDigestMd5 = "",
-                            const QString &sslCertDigestSha1 = "" );
+                            const QCryptographicHash::Algorithm hashAlgorithm = QCryptographicHash::Sha1,
+                            const QString &sslCertDigest = "");
 
     //! set SSL certificate digests after emitted checkSslCertifcate() signal
-    void acceptSslCertificate(const QString &sslCertDigestMd5 = "",
+    void acceptSslCertificate(const QCryptographicHash::Algorithm hashAlgorithm = QCryptographicHash::Sha1,
                               const QString &sslCertDigestSha1 = "");
 
     QNetworkReply* list(const QString& path);
@@ -126,8 +128,10 @@ public:
 
 signals:
     //! signal is emitted when an SSL error occured, the SSL certificates have to be checked
-    void checkSslCertifcate(const QList<QSslError> &errors);
-    void errorChanged(QString error);
+    void sslCertificateError(const QList<QSslError> &errors);
+    void connectionError(QString error);
+    void resourceError(QString error);
+//    void errorChanged(QString error);
 
 protected slots:
     void replyReadyRead();
@@ -157,9 +161,9 @@ private:
 
     QNetworkReply *m_authenticator_lastReply;
 
-    // MD5 and SHA1 digests to accept explicitly a SSL certificate
-    QByteArray m_sslCertDigestMd5;
-    QByteArray m_sslCertDigestSha1;
+    // Digest (e.g. MD5 or SHA1) to accept explicitly a SSL certificate
+    QCryptographicHash::Algorithm m_hashAlgorithm;
+    QByteArray m_sslCertDigest;
 };
 
 #endif // QWEBDAV_H

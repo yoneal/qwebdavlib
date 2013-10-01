@@ -18,14 +18,12 @@ RemoveTestSuite::RemoveTestSuite(QString host, QString root, QString username, Q
 
 void RemoveTestSuite::remove()
 {
-    QWebdav w;
     // Put file to remove
-    w.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
     QString path("/removeme.pdf");
     {
         QFile testData(QLatin1String(":/data/rfc4918.pdf"));
         Q_ASSERT(testData.open(QIODevice::ReadOnly));
-        QNetworkReply *reply = w.put(path, &testData);
+        QNetworkReply *reply = m_webdav.put(path, &testData);
         QSignalSpy errorSignal(reply, SIGNAL(error(QNetworkReply::NetworkError)));
         QSignalSpy finishedSignal(reply, SIGNAL(finished()));
         QVERIFY(finishedSignal.wait(DEFAULT_WAIT_TIMEOUT));
@@ -34,7 +32,7 @@ void RemoveTestSuite::remove()
     }
     // Remove uploaded file
     {
-        QNetworkReply *reply = w.remove(path);
+        QNetworkReply *reply = m_webdav.remove(path);
         QSignalSpy errorSignal(reply, SIGNAL(error(QNetworkReply::NetworkError)));
         QSignalSpy finishedSignal(reply, SIGNAL(finished()));
         QVERIFY(finishedSignal.wait(DEFAULT_WAIT_TIMEOUT));

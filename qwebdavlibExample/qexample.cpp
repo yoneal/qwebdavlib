@@ -3,10 +3,14 @@
 QExample::QExample(QObject *parent) :
     QObject(parent)
 {
-    w.setConnectionSettings(QWebdav::HTTP, "127.0.0.1", "/", "USERNAME", "PASSWORD", 80);
+    w.setConnectionSettings(QWebdav::HTTPS, "192.168.17.125", "/root/", "prnsoft", "prnsoft", 443
+                            , QCryptographicHash::Sha1, "a2:e1:8e:c5:65:64:0a:72:ff:56:dc:3c:51:46:8f:d7:d1:7f:3f:fb");
+//    w.setConnectionSettings(QWebdav::HTTP, "192.168.17.111", "/root/", "prnsoft", "prnsoft", 80
+//                            , "", "");
     connect(&p, SIGNAL(finished()), this, SLOT(printList()));
     connect(&p, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
-    connect(&w, SIGNAL(errorChanged(QString)), this, SLOT(printError(QString)));
+    connect(&w, SIGNAL(connectionError(QString)), this, SLOT(printError(QString)));
+    connect(&w, SIGNAL(sslCertificateError(QList<QSslError>)), this, SLOT(printError(QList<QSslError>)));
     m_path = "/";
 }
 
@@ -27,6 +31,15 @@ void QExample::printList()
 void QExample::printError(QString errorMsg)
 {
     qDebug() << "QWebdav::printErrors()  errorMsg == " << errorMsg;
+}
+
+void QExample::printError(QList<QSslError> errors)
+{
+    QSslError error;
+    foreach (error, errors)
+    {
+        qDebug() << "QWebdav::printErrors()  errorMsg == " << error.errorString();
+    }
 }
 
 void QExample::replySkipRead()

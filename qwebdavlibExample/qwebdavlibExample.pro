@@ -16,12 +16,12 @@ SOURCES += main.cpp \
 
 win32:CONFIG(release, debug|release) {
     # WINDOWS RELEASE
-    PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/release/qwebdav.lib
+    PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/release/qwebdav.dll
     INCLUDEPATH += $$PWD/../qwebdavlib/
     LIBS += -L$$OUT_PWD/../qwebdavlib/release/ -lqwebdav
 } else:win32:CONFIG(debug, debug|release) {
     # WINDOWS DEBUG
-    PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/debug/qwebdav.lib
+    PRE_TARGETDEPS += $$OUT_PWD/../qwebdavlib/debug/qwebdav.dll
     INCLUDEPATH += $$PWD/../qwebdavlib/
     LIBS += -L$$OUT_PWD/../qwebdavlib/debug/ -lqwebdav
 }

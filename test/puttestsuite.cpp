@@ -18,12 +18,10 @@ PutTestSuite::PutTestSuite(QString host, QString root, QString username, QString
 
 void PutTestSuite::putIODevice()
 {
-    QWebdav w;
-    w.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
-    QString path("/putIODeevice.pdf");
-    QFile testData(QLatin1String(":/data/rfc4918.pdf"));
+    QString path("/putIODevice.pdf");
+    QFile testData(QLatin1String(":/data/earth_art.pdf"));
     Q_ASSERT(testData.open(QIODevice::ReadOnly));
-    QNetworkReply *reply = w.put(path, dynamic_cast<QIODevice*>(&testData));
+    QNetworkReply *reply = m_webdav.put(path, dynamic_cast<QIODevice*>(&testData));
     QSignalSpy errorSignal(reply, SIGNAL(error(QNetworkReply::NetworkError)));
     QSignalSpy finishedSignal(reply, SIGNAL(finished()));
 
@@ -34,13 +32,11 @@ void PutTestSuite::putIODevice()
 
 void PutTestSuite::putByteArray()
 {
-    QWebdav w;
-    w.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
     QString path("/putByteArray.pdf");
     QFile testData(QLatin1String(":/data/rfc4918.pdf"));
     Q_ASSERT(testData.open(QIODevice::ReadOnly));
     QByteArray data = testData.readAll();
-    QNetworkReply *reply = w.put(path, data);
+    QNetworkReply *reply = m_webdav.put(path, data);
     QSignalSpy errorSignal(reply, SIGNAL(error(QNetworkReply::NetworkError)));
     QSignalSpy finishedSignal(reply, SIGNAL(finished()));
 

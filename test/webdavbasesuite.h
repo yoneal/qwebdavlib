@@ -1,6 +1,7 @@
 #ifndef WEBDAVBASESUITE_H
 #define WEBDAVBASESUITE_H
 
+#include <qwebdav.h>
 #include <QObject>
 
 class WebDAVBaseSuite : public QObject
@@ -22,6 +23,10 @@ protected:
     QString m_username;
     QString m_password;
     int m_port;
+    QWebdav m_webdav;
+
+protected slots:
+    virtual void initTestCase();
 
 };
 

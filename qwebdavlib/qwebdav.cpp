@@ -57,8 +57,8 @@ QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
   ,m_baseUrl()
   ,m_currentConnectionType(QWebdav::HTTP)
   ,m_authenticator_lastReply(0)
-  ,m_sslCertDigestMd5("")
-  ,m_sslCertDigestSha1("")
+  ,m_hashAlgorithm(QCryptographicHash::Sha1)
+  ,m_sslCertDigest("")
 
 {
     qRegisterMetaType<QNetworkReply*>("QNetworkReply*");
@@ -108,16 +108,15 @@ bool QWebdav::isSSL() const
 }
 
 void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
-                                    const QString& hostname,
-                                    const QString& rootPath,
-                                    const QString& username,
-                                    const QString& password,
+                                    const QString &hostname,
+                                    const QString &rootPath,
+                                    const QString &username,
+                                    const QString &password,
                                     int port,
-                                    const QString &sslCertDigestMd5,
-                                    const QString &sslCertDigestSha1)
+                                    const QCryptographicHash::Algorithm hashAlgorithm,
+                                    const QString &sslCertDigest)
 {
     m_rootPath = rootPath;
-
     if ((m_rootPath.size()>0) && (m_rootPath.endsWith("/")))
         m_rootPath.chop(1);
 
@@ -131,13 +130,11 @@ void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
         uriScheme = "https";
         break;
     }
-
     m_currentConnectionType = connectionType;
 
     m_baseUrl.setScheme(uriScheme);
     m_baseUrl.setHost(hostname);
     m_baseUrl.setPath(rootPath);
-
     if (port != 0) {
 
         // use user-defined port number
@@ -146,18 +143,18 @@ void QWebdav::setConnectionSettings(const QWebdavConnectionType connectionType,
             m_baseUrl.setPort(port);
     }
 
-    m_sslCertDigestMd5 = hexToDigest(sslCertDigestMd5);
-    m_sslCertDigestSha1 = hexToDigest(sslCertDigestSha1);
+    m_hashAlgorithm = hashAlgorithm;
+    m_sslCertDigest = hexToDigest(sslCertDigest);
 
     m_username = username;
     m_password = password;
 }
 
-void QWebdav::acceptSslCertificate(const QString &sslCertDigestMd5,
-                                   const QString &sslCertDigestSha1)
+void QWebdav::acceptSslCertificate(const QCryptographicHash::Algorithm hashAlgorithm,
+                                   const QString &sslCertDigest)
 {
-    m_sslCertDigestMd5 = hexToDigest(sslCertDigestMd5);
-    m_sslCertDigestSha1 = hexToDigest(sslCertDigestSha1);
+    m_hashAlgorithm = hashAlgorithm;
+    m_sslCertDigest = hexToDigest(sslCertDigest);
 }
 
 void QWebdav::replyReadyRead()
@@ -186,7 +183,7 @@ void QWebdav::replyFinished(QNetworkReply* reply)
         dataIO->write(reply->readAll());
         static_cast<QFile*>(dataIO)->flush();
         dataIO->close();
-        delete dataIO;
+        dataIO->deleteLater();
     }
     m_inDataDevices.remove(reply);
 
@@ -224,7 +221,7 @@ void QWebdav::replyError(QNetworkReply::NetworkError)
         return;
     }
 
-    emit errorChanged(reply->errorString());
+    emit resourceError(reply->errorString());
 }
 
 void QWebdav::provideAuthenication(QNetworkReply *reply, QAuthenticator *authenticator)
@@ -240,7 +237,7 @@ void QWebdav::provideAuthenication(QNetworkReply *reply, QAuthenticator *authent
 
     if (reply == m_authenticator_lastReply) {
         reply->abort();
-        emit errorChanged("WebDAV server requires authentication. Check WebDAV share settings!");
+        emit connectionError("WebDAV server requires authentication. Check WebDAV share settings!");
         reply->deleteLater();
         reply=0;
     }
@@ -255,18 +252,21 @@ void QWebdav::sslErrors(QNetworkReply *reply, const QList<QSslError> &errors)
 {
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::sslErrors()   reply->url == " << reply->url().toString(QUrl::RemoveUserInfo);
+    foreach (QSslError error, errors) {
+        qDebug() << "QWebdav::sslErrors()  " << error.errorString();
+    }
 #endif
 
     QSslCertificate sslcert = errors[0].certificate();
+    QByteArray digest = sslcert.digest(m_hashAlgorithm);
 
-    if ( ( sslcert.digest(QCryptographicHash::Md5) == m_sslCertDigestMd5 ) &&
-         ( sslcert.digest(QCryptographicHash::Sha1) == m_sslCertDigestSha1) )
+    if ( digest == m_sslCertDigest )
     {
         // user accepted this SSL certifcate already ==> ignore SSL errors
         reply->ignoreSslErrors();
     } else {
         // user has to check the SSL certificate and has to accept manually
-        emit checkSslCertifcate(errors);
+        emit sslCertificateError(errors);
         reply->abort();
     }
 }

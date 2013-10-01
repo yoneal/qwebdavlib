@@ -84,6 +84,7 @@ public:
     bool isBusy() const;
     bool isFinished() const;
     QString path() const;
+    bool isLastRequestSuccessful() const;
 
 signals:
     void finished();
@@ -113,6 +114,7 @@ private:
     bool m_includeRequestedURI;
     bool m_busy;
     bool m_abort;
+    bool m_lastReqSuccess;
 };
 
 #endif // QWEBDAVDIRPARSER_H

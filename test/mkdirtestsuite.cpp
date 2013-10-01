@@ -22,9 +22,7 @@ MkdirTestSuite::MkdirTestSuite(QString host, QString root, QString username, QSt
 void MkdirTestSuite::init()
 {
     // Delete existing test directory first because it will fail our tests
-    QWebdav w;
-    w.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
-    QNetworkReply *reply = w.remove(dir);
+    QNetworkReply *reply = m_webdav.remove(dir);
     QSignalSpy finishedSignal(reply, SIGNAL(finished()));
     QVERIFY(finishedSignal.wait(DEFAULT_WAIT_TIMEOUT));
     reply->deleteLater();
@@ -32,11 +30,10 @@ void MkdirTestSuite::init()
 
 void MkdirTestSuite::mkdir()
 {
-    QWebdav w;
     // Make directory
-    w.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
+    m_webdav.setConnectionSettings(QWebdav::HTTP, m_hostname, m_root, m_username, m_password, m_port);
     {
-        QNetworkReply *reply = w.mkdir(dir);
+        QNetworkReply *reply = m_webdav.mkdir(dir);
         QSignalSpy errorSignal(reply, SIGNAL(error(QNetworkReply::NetworkError)));
         QSignalSpy finishedSignal(reply, SIGNAL(finished()));
         QVERIFY(finishedSignal.wait(DEFAULT_WAIT_TIMEOUT));
@@ -48,7 +45,7 @@ void MkdirTestSuite::mkdir()
         QWebdavDirParser dirParser;
         QSignalSpy errorSignal(&dirParser, SIGNAL(errorChanged(QString)));
         QSignalSpy finishedSignal(&dirParser, SIGNAL(finished()));
-        QVERIFY(dirParser.getDirectoryInfo(&w,dir));
+        QVERIFY(dirParser.getDirectoryInfo(&m_webdav,dir));
         QVERIFY(finishedSignal.wait(DEFAULT_WAIT_TIMEOUT));
         QCOMPARE(errorSignal.count(), 0);
         QList<QWebdavItem> result = dirParser.getList();

@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/data">
         <file alias="rfc4918.pdf">data/rfc4918.pdf</file>
+        <file alias="earth_art.pdf">data/earth_art-ebook.pdf</file>
     </qresource>
 </RCC>

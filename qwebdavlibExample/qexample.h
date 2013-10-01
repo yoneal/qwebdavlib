@@ -24,6 +24,7 @@ signals:
 public slots:
     void printList();
     void printError(QString errorMsg);
+    void printError(QList<QSslError> errors);
     void replySkipRead();
 
 public:

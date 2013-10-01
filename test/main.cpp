@@ -1,10 +1,13 @@
 #include "cmdlineparser.h"
+#include "testrunner.h"
 #include "puttestsuite.h"
 #include "removetestsuite.h"
 #include "mkdirtestsuite.h"
+#include "gettestsuite.h"
 
 #include <QCoreApplication>
 #include <QtTest>
+#include <QTimer>
 #include <QDebug>
 
 int main(int argc, char *argv[])
@@ -25,17 +28,45 @@ int main(int argc, char *argv[])
     }
 
     // Perform tests
-    PutTestSuite putTestSuite(cmdParser.hostname(), cmdParser.root(),
-                              cmdParser.username(), cmdParser.password(), cmdParser.port(), &app);
-    QTest::qExec(&putTestSuite, cmdParser.skippedArguments());
-    RemoveTestSuite removeTestSuite(cmdParser.hostname(), cmdParser.root(),
-                                    cmdParser.username(), cmdParser.password(), cmdParser.port(), &app);
-    QTest::qExec(&removeTestSuite, cmdParser.skippedArguments());
-    MkdirTestSuite mkdirTestSuite(cmdParser.hostname(), cmdParser.root(),
-            cmdParser.username(), cmdParser.password(), cmdParser.port(), &app);
-    QTest::qExec(&mkdirTestSuite, cmdParser.skippedArguments());
-
-    qDebug() << "Done";
+    TestRunner runner(cmdParser.skippedArguments(), &app);
+    /**
+      * Add tests here
+      */
+    runner.addTest(new PutTestSuite(cmdParser.hostname()
+                                , cmdParser.root()
+                                , cmdParser.username()
+                                , cmdParser.password()
+                                , cmdParser.port()
+                                , &app
+                                ));
+    runner.addTest(new RemoveTestSuite(cmdParser.hostname()
+                                   , cmdParser.root()
+                                   , cmdParser.username()
+                                   , cmdParser.password()
+                                   , cmdParser.port()
+                                   , &app
+                                   ));
+    runner.addTest(new MkdirTestSuite(cmdParser.hostname()
+                                  , cmdParser.root()
+                                  , cmdParser.username()
+                                  , cmdParser.password()
+                                  , cmdParser.port()
+                                  , &app
+                                  ));
+    runner.addTest(new GetTestSuite(cmdParser.hostname()
+                                  , cmdParser.root()
+                                  , cmdParser.username()
+                                  , cmdParser.password()
+                                  , cmdParser.port()
+                                  , &app
+                                  ));
+    QObject::connect(&runner, &TestRunner::finished, [&] (int result)
+    {
+        qDebug() << "Overall Result: " << (result == 0 ? "PASS" : "FAIL");
+        app.quit();
+    });
+    QTimer::singleShot(0, &runner, SLOT(run()));
 
     return app.exec();
 }
+

@@ -57,6 +57,7 @@ QWebdavDirParser::QWebdavDirParser(QObject *parent) : QObject(parent)
   ,m_includeRequestedURI(false)
   ,m_busy(false)
   ,m_abort(false)
+  ,m_lastReqSuccess(true)
 {
     m_mutex.reset(new QMutex(QMutex::Recursive));
 }
@@ -91,6 +92,7 @@ bool QWebdavDirParser::listDirectory(QWebdav *pWebdav, const QString &path)
     m_busy = true;
     m_abort = false;
     m_includeRequestedURI = false;
+    m_lastReqSuccess = true;
 
     m_reply = pWebdav->list(path);
     connect(m_reply, SIGNAL(finished()), this, SLOT(replyFinished()));
@@ -119,6 +121,7 @@ bool QWebdavDirParser::listItem(QWebdav *pWebdav, const QString &path)
     m_path = path;
     m_busy = true;
     m_includeRequestedURI = true;
+    m_lastReqSuccess = true;
 
     m_reply = pWebdav->list(path, 0);
 
@@ -169,6 +172,11 @@ QString QWebdavDirParser::path() const
     return m_path;
 }
 
+bool QWebdavDirParser::isLastRequestSuccessful() const
+{
+    return m_lastReqSuccess;
+}
+
 void QWebdavDirParser::abort()
 {
     m_abort = true;
@@ -178,6 +186,7 @@ void QWebdavDirParser::abort()
 
     m_reply = 0;
     m_busy = false;
+    m_lastReqSuccess = false;
 }
 
 void QWebdavDirParser::replyFinished()
@@ -207,6 +216,7 @@ void QWebdavDirParser::replyFinished()
         qDebug() << "   Reply finished. Content header:" << contentType;
     #endif
         if ( (m_reply->error() != QNetworkReply::NoError) && (m_reply->error() != QNetworkReply::OperationCanceledError) ) {
+            m_lastReqSuccess = false;
             QString errStr = m_reply->errorString();
             errStr = errStr.right(errStr.size()-errStr.indexOf("server replied:")+1);
             emit errorChanged(errStr);

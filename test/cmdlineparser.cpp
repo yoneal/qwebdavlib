@@ -19,10 +19,10 @@ const QString CmdLineParser::m_helpMessage = QLatin1String(
 
 CmdLineParser::CmdLineParser(const QStringList &arguments)
     : m_pos(0),
-      m_quiet(true),
-      m_hostname("localhost"),
+      m_hostname("localhost"),      
       m_root("/"),
-      m_port(80)
+      m_port(80),
+      m_quiet(true)
 {
     for (int i = 1; i < arguments.count(); ++i) {
         const QString &arg = arguments.at(i);
